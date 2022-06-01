@@ -2,12 +2,11 @@ package org.yareyaredaze.eggu;
 
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Bundle;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -39,10 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final long TRACK_TIME = 10000;
     private static final long DEFAULT_WAIT_TIME = 1000;
-
-    public static final int AMPLITUDE_DIFF_LOW = 10000;
+    final int MAX_VOLUME = 100;
     public static final int AMPLITUDE_DIFF_HIGH = 26000;
-    public static final int AMPLITUDE_DIFF_DEFAULT =  18000;
 
     private boolean continueRecording = true;
     private Thread recordThread;
@@ -56,57 +53,55 @@ public class MainActivity extends AppCompatActivity {
 
         mediaPlayer = MediaPlayer.create(this, R.raw.hensound);
 
-        final int MAX_VOLUME = 100;
-        binding.egguVolBar.setMax(100);
-        binding.egguVolBar.setProgress(10);
+        binding.egguVolBar.setMax(MAX_VOLUME);
+        binding.egguVolBar.setProgress(90);
         binding.egguVolBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                Log.d(TAG, "Volume: "+ seekBar.getProgress());
+                float volume = (float) (1 - (Math.log(MAX_VOLUME - seekBar.getProgress()) / Math.log(MAX_VOLUME)));
+                Log.d(TAG, "Vol: " + volume);
+                mediaPlayer.setVolume(volume, volume);
+                binding.egguTxt.setText("Hen Sound Volume: " + String.format("%.3g", volume) + "%");
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                binding.egguWlc.setBackgroundColor(color);
+            }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.d(TAG, "Volume: "+ seekBar.getProgress());
-                float volume =(float) (1 - (Math.log(MAX_VOLUME - seekBar.getProgress()) / Math.log(MAX_VOLUME)));
-                Log.d(TAG, "vol: " + volume);
-                mediaPlayer.setVolume(volume, volume);
-                binding.egguTxt.setText("Current Hen Sound Volume: " + seekBar.getProgress() + "%");
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         binding.egguAmpBar.setMax(AMPLITUDE_DIFF_HIGH);
-        binding.egguAmpBar.setProgress(2000);
+        binding.egguAmpBar.setProgress(10000);
         binding.egguAmpBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progressChangedValue = 0 ;
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                progressChangedValue = progress;
+                Log.d(TAG, "Amplitude " + seekBar.getProgress());
+                binding.egguTxt.setText("Loudness of Egg: " + seekBar.getProgress());
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                binding.egguWlc.setBackgroundColor(color);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.d(TAG, "Amplitude " + seekBar.getProgress());
-                binding.egguTxt.setText("Current Amplitude: " + seekBar.getProgress());
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         binding.egguBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (status) {
+                    startRecording();
+                    Log.d(TAG, "Started");
                     binding.egguBtn.setBackgroundColor(getResources().getColor(R.color.teal_700, getResources().newTheme()));
                     binding.egguBtn.setText("Egging");
-                    try {
-                        startRecording();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d(TAG, "Started");
                 } else {
                     try {
                         pauseRecording();
@@ -153,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{RECORD_AUDIO, WRITE_EXTERNAL_STORAGE}, REQUEST_AUDIO_PERMISSION_CODE);
     }
 
-    private void startRecording() throws IOException {
+    private void startRecording() {
         if (CheckPermissions()) {
             binding.egguAmpBar.setEnabled(true);
             binding.egguVolBar.setEnabled(true);
@@ -184,14 +179,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void reactOnRecord() {
         Random random = new Random();
-        int startAmplitude = mediaRecorder.getMaxAmplitude();
-        Log.d(TAG, "Starting Amplitude " + startAmplitude);
         while (continueRecording) {
             waitSome(DEFAULT_WAIT_TIME);
             int finishAmplitude = mediaRecorder.getMaxAmplitude();
-            int ampDifference = finishAmplitude - startAmplitude;
-            Log.d(TAG, "Amplitude Difference: " + ampDifference);
-            if (ampDifference >= binding.egguAmpBar.getProgress()) {
+            Log.d(TAG, "max Amplitude: " + finishAmplitude);
+            if (finishAmplitude >= binding.egguAmpBar.getProgress()) {
                 Log.d(TAG, "Starting Hen Sound");
                 mediaPlayer.seekTo(random.nextInt(mediaPlayer.getDuration() - (int) TRACK_TIME));
                 mediaPlayer.start();
@@ -208,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
         mediaRecorder.stop();
         mediaRecorder.release();
         mediaRecorder = null;
-        binding.egguBtn.setBackgroundColor(getResources().getColor(R.color.teal_700, getResources().newTheme()));
         binding.egguBtn.setText("Eggu");
         binding.egguAmpBar.setEnabled(false);
         binding.egguVolBar.setEnabled(false);

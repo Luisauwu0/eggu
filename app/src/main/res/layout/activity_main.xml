@@ -12,31 +12,40 @@
         android:layout_height="wrap_content"
         android:theme="@style/Theme.Eggu.AppBarOverlay">
 
-        <SeekBar
-            android:id="@+id/egguVolBar"
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
-
         <TextView
-            android:id="@+id/egguTxt"
+            android:id="@+id/egguWlc"
             android:layout_width="match_parent"
-            android:layout_height="79dp"
+            android:layout_height="wrap_content"
+            android:text="Welcome to the Eggulator"
             android:textAlignment="center"
-            android:textColor="#8B88B5"
+            android:textColor="#000000"
             android:textSize="20sp" />
 
         <SeekBar
             android:id="@+id/egguAmpBar"
             style="@style/Widget.AppCompat.SeekBar.Discrete"
             android:layout_width="match_parent"
-            android:layout_height="111dp"
+            android:layout_height="146dp"
             android:max="10"
             android:progress="3" />
+
+        <SeekBar
+            android:id="@+id/egguVolBar"
+            android:layout_width="match_parent"
+            android:layout_height="126dp" />
+
+        <TextView
+            android:id="@+id/egguTxt"
+            android:layout_width="match_parent"
+            android:layout_height="111dp"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/egguBtn"
             android:layout_width="match_parent"
-            android:layout_height="75dp"
+            android:layout_height="151dp"
             android:text="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
