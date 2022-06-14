@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final long TRACK_TIME = 10000;
     private static final long DEFAULT_WAIT_TIME = 1000;
     final int MAX_VOLUME = 100;
-    public static final int AMPLITUDE_DIFF_HIGH = 26000;
+    public static final int AMPLITUDE_DIFF_HIGH = 52000;
 
     private boolean continueRecording = true;
     private Thread recordThread;
